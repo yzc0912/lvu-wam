@@ -109,6 +109,19 @@ WeaveTime addresses **Time-Agnosticism** in Video-LLMs — treating videos as un
 - **Temporal Reconstruction objective** (Streaming Order Perception) — lightweight fine-tuning to instill order-aware representations
 - **Past-Current Dynamic Focus Cache** — uncertainty-triggered, coarse-to-fine retrieval that expands history only when needed
 
+### WeaveTime Training Scale & Configuration
+| Parameter | Value |
+|-----------|-------|
+| Primary dataset | LLaVA-Video-178K (~178K samples) |
+| Epochs | 1 |
+| Effective batch size | 64 (1/GPU × 8GPU × grad_accum=8) |
+| Learning rate | 1e-5 (cosine, warmup 3%) |
+| LoRA r (Qwen2-VL) | 128 (alpha=256) |
+| Optimizer | AdamW, bf16+tf32 |
+| Parallelism | DeepSpeed ZeRO-2 |
+| Max frames/video | 768 |
+| Est. training time | ~10–20 hrs on 8× A100 (single epoch) |
+
 ### WeaveTime Training Datasets (LoRA fine-tuning)
 | Dataset | Description |
 |---------|-------------|
@@ -129,6 +142,8 @@ Evaluated on: StreamingBench, **OVOBench**, **MLVU**, ActivityNet-QA, EgoSchema,
 | Orthogonal? | ✓ — addresses memory/order | ✓ — addresses future grounding + deferral |
 
 **Conclusion**: WeaveTime and LAVA solve different dimensions of streaming video understanding and are complementary. WeaveTime excels at memory-efficient streaming inference; LAVA excels at LVU tasks with V-JEPA 2's future imagination for FP/IA queries.
+
+> **Training scale note**: WeaveTime trains on ~178K samples (single epoch) for a quick LoRA adaptation. LAVA targets larger-scale LVU training — WebVid-10M (10M samples) or HowTo100M (1M samples) for pretraining, followed by MLVU downstream training. LAVA Phase 3 training is expected to be significantly longer given the data scale.
 
 ## Key Design Decisions
 
