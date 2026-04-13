@@ -71,11 +71,41 @@ lava/
   inference/pipeline.py # streaming inference + benchmark evaluation
 ```
 
+## Training Datasets
+
+### Recommended Training Data Combinations
+
+#### Pretraining / Large-Scale
+| Dataset | Description | Link |
+|---------|-------------|------|
+| **WebVid-10M** | 10M captioned short videos — largest video-text dataset | [GitHub](https://github.com/m-bain/webvid) |
+| **HowTo100M** | 1M instructional videos with captions, long temporal span | [GitHub](https://github.com/LandyGuo/Download_HowTo100M) |
+
+#### Downstream / LVU Task Training
+| Dataset | Description | Link |
+|---------|-------------|------|
+| **MLVU** | CVPR 2025 — Multi-Task Long Video Understanding, 9 tasks, 3min–2hr videos | [HuggingFace](https://huggingface.co/datasets/MLVU/MVLU) |
+| **YouCook2** | 89 recipe categories, temporal annotations for video grounding | widely used in video grounding literature |
+| **ActivityNet-QA** | QA pairs on ActivityNet videos | [GitHub](https://github.com/MILVLG/activitynet-qa) |
+
+#### For Streaming / Online特性
+| Dataset | Description | Link |
+|---------|-------------|------|
+| **OVO-Bench** | Online Video Understanding benchmark — streaming video comprehension | [GitHub](https://github.com/JoeLeelyf/OVO-Bench) |
+| **OVBench** | Streaming video understanding evaluation | benchmark for LAVA's deferral mechanism |
+
+### Data Preparation Priority
+1. **Pretraining**: WebVid-10M or HowTo100M — establish video-text alignment
+2. **LVU downstream**: MLVU training set — multi-task LVU objectives
+3. **Temporal reasoning**: YouCook2 — rich temporal ground truth for FP/IA paths
+4. **Streaming evaluation**: OVO-Bench / OVBench — validate deferral mechanism
+
 ## Key Design Decisions
 
 1. **No separate Phase 2**: LAE trained jointly in Phase 3 — contrastive pre-training not required
 2. **V-JEPA encoder handles past, V-JEPA predictor handles future** — clean separation of temporal reasoning
 3. **Predictor rollout provides visual grounding for FP/IA** — not language-prior guessing
+4. **Focus: LVU (Long Video Understanding), not VLA** — WAM's future imagination complements LVU's temporal reasoning
 
 ## Commands
 
@@ -94,10 +124,12 @@ python train.py --mode eval --ckpt ./checkpoints/lava_phase3/step_30000 --bench 
 
 - V-JEPA 2 encoder + predictor (Meta, 1M hour video pretrained)
 - Qwen2-VL-7B (Alibaba, instruction-tuned)
-- OVBench / OVO-Bench datasets
+- MLVU / OVBench / OVO-Bench datasets
+- WebVid-10M or HowTo100M (for pretraining)
 
 ## Notes
 
 - V-JEPA 2 predictor attribute name may vary by HF version — check `raw.predictor` vs `raw.predictor_model`
 - Dataset JSON requires `answer_timestamp` field — write conversion script for OVBench/OVO-Bench (~50 lines)
 - ICD label masking in trainer.py uses rough token counting — consider switching to `"Answer:"` token position for precision
+- FP queries use N=5 (~2.5s lookahead); IA queries use N=10 (~5s lookahead) — validate on dev set
