@@ -100,6 +100,36 @@ lava/
 3. **Temporal reasoning**: YouCook2 — rich temporal ground truth for FP/IA paths
 4. **Streaming evaluation**: OVO-Bench / OVBench — validate deferral mechanism
 
+## Related Work: WeaveTime (CVPR 2026)
+
+**Paper**: [WeaveTime: Stream from Earlier Frames into Emergent Memory in VideoLLMs](https://arxiv.org/abs/2602.22142)
+
+WeaveTime addresses **Time-Agnosticism** in Video-LLMs — treating videos as unordered bags of evidence rather than causally ordered sequences. It introduces:
+
+- **Temporal Reconstruction objective** (Streaming Order Perception) — lightweight fine-tuning to instill order-aware representations
+- **Past-Current Dynamic Focus Cache** — uncertainty-triggered, coarse-to-fine retrieval that expands history only when needed
+
+### WeaveTime Training Datasets (LoRA fine-tuning)
+| Dataset | Description |
+|---------|-------------|
+| **LLaVA-Video-178K** | lmms-lab/LLaVA-Video-178K |
+| **VCR-Bench** | VLM-Reasoning/VCR-Bench (visual commonsense reasoning) |
+| **Ego4D-MC** | Becomebright/QAEgo4D-MC-test (egocentric video QA) |
+
+Evaluated on: StreamingBench, **OVOBench**, **MLVU**, ActivityNet-QA, EgoSchema, ETBench, CGbench, Eventhal, VidHalluc
+
+### WeaveTime vs LAVA
+
+| | WeaveTime | LAVA |
+|--|-----------|------|
+| Core mechanism | Temporal Reconstruction + Dynamic Focus Cache | V-JEPA 2 predictor rollout + deferral |
+| Training data | 178K + VCR + Ego4D | MLVU + WebVid-10M (proposed) |
+| Goal | Memory efficiency in streaming Video-LLMs | LVU + future prediction + autonomous deferral |
+| Base models | LLaVA-OneVision / Qwen2-VL | V-JEPA 2 + Qwen2-VL-7B |
+| Orthogonal? | ✓ — addresses memory/order | ✓ — addresses future grounding + deferral |
+
+**Conclusion**: WeaveTime and LAVA solve different dimensions of streaming video understanding and are complementary. WeaveTime excels at memory-efficient streaming inference; LAVA excels at LVU tasks with V-JEPA 2's future imagination for FP/IA queries.
+
 ## Key Design Decisions
 
 1. **No separate Phase 2**: LAE trained jointly in Phase 3 — contrastive pre-training not required
